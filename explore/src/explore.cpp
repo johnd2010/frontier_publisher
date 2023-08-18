@@ -78,18 +78,53 @@ Explore::Explore()
         private_nh_.advertise<visualization_msgs::MarkerArray>("frontiers", 10);
   }
 
-  ROS_INFO("Waiting to connect to move_base server");
-  move_base_client_.waitForServer();
-  ROS_INFO("Connected to move_base server");
+  // ROS_INFO("Waiting to connect to move_base server");
+  // move_base_client_.waitForServer();
+  // ROS_INFO("Connected to move_base server");
 
   exploring_timer_ =
       relative_nh_.createTimer(ros::Duration(1. / planner_frequency_),
-                               [this](const ros::TimerEvent&) { makePlan(); });
+                               [this](const ros::TimerEvent&) { get_frontiers(); });
 }
+
+void Explore::get_frontiers()
+{
+  // find frontiers
+  auto pose = costmap_client_.getRobotPose();
+  // get frontiers sorted according to cost
+  auto frontiers = search_.searchFrom(pose.position);
+  ROS_DEBUG("found %lu frontiers", frontiers.size());
+  for (size_t i = 0; i < frontiers.size(); ++i) {
+    ROS_DEBUG("frontier %zd cost: %f", i, frontiers[i].cost);
+  }
+
+  // if (frontiers.empty()) {
+  //   stop();
+  //   return;
+  // }
+
+  // publish frontiers as visualization markers
+  if (visualize_) {
+    visualizeFrontiers(frontiers);
+  }
+
+  // find non blacklisted frontier
+  auto frontier =
+      std::find_if_not(frontiers.begin(), frontiers.end(),
+                       [this](const frontier_exploration::Frontier& f) {
+                         return goalOnBlacklist(f.centroid);
+                       });
+  if (frontier == frontiers.end()) {
+    // stop();
+    return;
+  }
+  geometry_msgs::Point target_position = frontier->centroid;  
+}
+
 
 Explore::~Explore()
 {
-  stop();
+  return;
 }
 
 void Explore::visualizeFrontiers(
@@ -176,74 +211,6 @@ void Explore::visualizeFrontiers(
   marker_array_publisher_.publish(markers_msg);
 }
 
-void Explore::makePlan()
-{
-  // find frontiers
-  auto pose = costmap_client_.getRobotPose();
-  // get frontiers sorted according to cost
-  auto frontiers = search_.searchFrom(pose.position);
-  ROS_DEBUG("found %lu frontiers", frontiers.size());
-  for (size_t i = 0; i < frontiers.size(); ++i) {
-    ROS_DEBUG("frontier %zd cost: %f", i, frontiers[i].cost);
-  }
-
-  if (frontiers.empty()) {
-    stop();
-    return;
-  }
-
-  // publish frontiers as visualization markers
-  if (visualize_) {
-    visualizeFrontiers(frontiers);
-  }
-
-  // find non blacklisted frontier
-  auto frontier =
-      std::find_if_not(frontiers.begin(), frontiers.end(),
-                       [this](const frontier_exploration::Frontier& f) {
-                         return goalOnBlacklist(f.centroid);
-                       });
-  if (frontier == frontiers.end()) {
-    stop();
-    return;
-  }
-  geometry_msgs::Point target_position = frontier->centroid;
-
-  // time out if we are not making any progress
-  bool same_goal = prev_goal_ == target_position;
-  prev_goal_ = target_position;
-  if (!same_goal || prev_distance_ > frontier->min_distance) {
-    // we have different goal or we made some progress
-    last_progress_ = ros::Time::now();
-    prev_distance_ = frontier->min_distance;
-  }
-  // black list if we've made no progress for a long time
-  if (ros::Time::now() - last_progress_ > progress_timeout_) {
-    frontier_blacklist_.push_back(target_position);
-    ROS_DEBUG("Adding current goal to black list");
-    makePlan();
-    return;
-  }
-
-  // we don't need to do anything if we still pursuing the same goal
-  if (same_goal) {
-    return;
-  }
-
-  // send goal to move_base if we have something new to pursue
-  move_base_msgs::MoveBaseGoal goal;
-  goal.target_pose.pose.position = target_position;
-  goal.target_pose.pose.orientation.w = 1.;
-  goal.target_pose.header.frame_id = costmap_client_.getGlobalFrameID();
-  goal.target_pose.header.stamp = ros::Time::now();
-  move_base_client_.sendGoal(
-      goal, [this, target_position](
-                const actionlib::SimpleClientGoalState& status,
-                const move_base_msgs::MoveBaseResultConstPtr& result) {
-        reachedGoal(status, result, target_position);
-      });
-}
-
 bool Explore::goalOnBlacklist(const geometry_msgs::Point& goal)
 {
   constexpr static size_t tolerace = 5;
@@ -261,44 +228,13 @@ bool Explore::goalOnBlacklist(const geometry_msgs::Point& goal)
   return false;
 }
 
-void Explore::reachedGoal(const actionlib::SimpleClientGoalState& status,
-                          const move_base_msgs::MoveBaseResultConstPtr&,
-                          const geometry_msgs::Point& frontier_goal)
-{
-  ROS_DEBUG("Reached goal with status: %s", status.toString().c_str());
-  if (status == actionlib::SimpleClientGoalState::ABORTED) {
-    frontier_blacklist_.push_back(frontier_goal);
-    ROS_DEBUG("Adding current goal to black list");
-  }
-
-  // find new goal immediatelly regardless of planning frequency.
-  // execute via timer to prevent dead lock in move_base_client (this is
-  // callback for sendGoal, which is called in makePlan). the timer must live
-  // until callback is executed.
-  oneshot_ = relative_nh_.createTimer(
-      ros::Duration(0, 0), [this](const ros::TimerEvent&) { makePlan(); },
-      true);
-}
-
-void Explore::start()
-{
-  exploring_timer_.start();
-}
-
-void Explore::stop()
-{
-  move_base_client_.cancelAllGoals();
-  exploring_timer_.stop();
-  ROS_INFO("Exploration stopped.");
-}
-
-}  // namespace explore
+} 
 
 int main(int argc, char** argv)
 {
   ros::init(argc, argv, "explore");
   if (ros::console::set_logger_level(ROSCONSOLE_DEFAULT_NAME,
-                                     ros::console::levels::Debug)) {
+                                    ros::console::levels::Debug)) {
     ros::console::notifyLoggerLevelsChanged();
   }
   explore::Explore explore;

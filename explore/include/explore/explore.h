@@ -72,6 +72,7 @@ private:
    * @brief  Make a global plan
    */
   void makePlan();
+  void get_frontiers();
 
   /**
    * @brief  Publish a frontiers as markers
