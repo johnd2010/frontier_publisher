@@ -145,6 +145,11 @@ void Explore::visualizeFrontiers(
   green.g = 1.0;
   green.b = 0;
   green.a = 1.0;
+  std_msgs::ColorRGBA yellow;
+  green.r = 1.0;
+  green.g = 1.0;
+  green.b = 0;
+  green.a = 1.0;
 
   ROS_DEBUG("visualising %lu frontiers", frontiers.size());
   visualization_msgs::MarkerArray markers_msg;
@@ -195,6 +200,18 @@ void Explore::visualizeFrontiers(
     m.scale.z = scale;
     m.points = {};
     m.color = green;
+    markers.push_back(m);
+    ++id;
+    m.type = visualization_msgs::Marker::CUBE;
+    m.id = int(id);
+    m.pose.position = frontier.centroid;
+    // scale frontier according to its cost (costier frontiers will be smaller)
+    // double scale = std::min(std::abs(min_cost * 0.4 / frontier.cost), 0.5);
+    // m.scale.x = scale;
+    // m.scale.y = scale;
+    // m.scale.z = scale;
+    m.points = {};
+    m.color = yellow;
     markers.push_back(m);
     ++id;
   }
