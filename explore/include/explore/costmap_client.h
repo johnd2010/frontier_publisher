@@ -110,7 +110,7 @@ public:
 
 protected:
   void updateFullMap(const nav_msgs::OccupancyGrid::ConstPtr& msg);
-  void updatePartialMap(const map_msgs::OccupancyGridUpdate::ConstPtr& msg);
+  // void updatePartialMap(const map_msgs::OccupancyGridUpdate::ConstPtr& msg);
 
   costmap_2d::Costmap2D costmap_;
 

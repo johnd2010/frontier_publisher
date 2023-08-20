@@ -54,7 +54,6 @@ Explore::Explore()
   : private_nh_("~")
   , tf_listener_(ros::Duration(10.0))
   , costmap_client_(private_nh_, relative_nh_, &tf_listener_)
-  , move_base_client_("move_base")
   , prev_distance_(0)
   , last_markers_count_(0)
 {
@@ -78,10 +77,6 @@ Explore::Explore()
         private_nh_.advertise<visualization_msgs::MarkerArray>("frontiers", 10);
   }
 
-  // ROS_INFO("Waiting to connect to move_base server");
-  // move_base_client_.waitForServer();
-  // ROS_INFO("Connected to move_base server");
-
   exploring_timer_ =
       relative_nh_.createTimer(ros::Duration(1. / planner_frequency_),
                                [this](const ros::TimerEvent&) { get_frontiers(); });
@@ -90,10 +85,11 @@ Explore::Explore()
 void Explore::get_frontiers()
 {
   // find frontiers
+  
   auto pose = costmap_client_.getRobotPose();
   // get frontiers sorted according to cost
   auto frontiers = search_.searchFrom(pose.position);
-  ROS_DEBUG("found %lu frontiers", frontiers.size());
+  ROS_INFO("found %lu frontiers", frontiers.size());
   for (size_t i = 0; i < frontiers.size(); ++i) {
     ROS_DEBUG("frontier %zd cost: %f", i, frontiers[i].cost);
   }
@@ -130,26 +126,16 @@ Explore::~Explore()
 void Explore::visualizeFrontiers(
     const std::vector<frontier_exploration::Frontier>& frontiers)
 {
-  std_msgs::ColorRGBA blue;
-  blue.r = 0;
-  blue.g = 0;
-  blue.b = 1.0;
-  blue.a = 1.0;
+  std_msgs::ColorRGBA my_color;
+  my_color.r = 0;
+  my_color.g = 0;
+  my_color.b = 1.0;
+  my_color.a = 1.0;
   std_msgs::ColorRGBA red;
   red.r = 1.0;
   red.g = 0;
   red.b = 0;
   red.a = 1.0;
-  std_msgs::ColorRGBA green;
-  green.r = 0;
-  green.g = 1.0;
-  green.b = 0;
-  green.a = 1.0;
-  std_msgs::ColorRGBA yellow;
-  green.r = 1.0;
-  green.g = 1.0;
-  green.b = 0;
-  green.a = 1.0;
 
   ROS_DEBUG("visualising %lu frontiers", frontiers.size());
   visualization_msgs::MarkerArray markers_msg;
@@ -175,6 +161,8 @@ void Explore::visualizeFrontiers(
 
   m.action = visualization_msgs::Marker::ADD;
   size_t id = 0;
+  double frontier_id = 0;
+
   for (auto& frontier : frontiers) {
     m.type = visualization_msgs::Marker::POINTS;
     m.id = int(id);
@@ -186,34 +174,38 @@ void Explore::visualizeFrontiers(
     if (goalOnBlacklist(frontier.centroid)) {
       m.color = red;
     } else {
-      m.color = blue;
+      my_color.r = (frontier_id/(frontiers.size()+1));
+      my_color.g = 1-(frontier_id/(frontiers.size()+1));
+      // ROS_INFO("visualising %f frontiers", my_color.r);
+      m.color = my_color;
     }
     markers.push_back(m);
     ++id;
-    m.type = visualization_msgs::Marker::SPHERE;
-    m.id = int(id);
-    m.pose.position = frontier.initial;
-    // scale frontier according to its cost (costier frontiers will be smaller)
-    double scale = std::min(std::abs(min_cost * 0.4 / frontier.cost), 0.5);
-    m.scale.x = scale;
-    m.scale.y = scale;
-    m.scale.z = scale;
-    m.points = {};
-    m.color = green;
-    markers.push_back(m);
-    ++id;
-    m.type = visualization_msgs::Marker::CUBE;
-    m.id = int(id);
-    m.pose.position = frontier.centroid;
+    ++frontier_id;
+    // m.type = visualization_msgs::Marker::CUBE;
+    // m.id = int(id);
+    // m.pose.position = frontier.initial;
     // scale frontier according to its cost (costier frontiers will be smaller)
     // double scale = std::min(std::abs(min_cost * 0.4 / frontier.cost), 0.5);
     // m.scale.x = scale;
     // m.scale.y = scale;
     // m.scale.z = scale;
-    m.points = {};
-    m.color = yellow;
-    markers.push_back(m);
-    ++id;
+    // m.points = {};
+    // m.color = green;
+    // markers.push_back(m);
+    // ++id;
+    // m.type = visualization_msgs::Marker::CUBE;
+    // m.id = int(id);
+    // m.pose.position = frontier.centroid;
+    // scale frontier according to its cost (costier frontiers will be smaller)
+    // double scale = std::min(std::abs(min_cost * 0.4 / frontier.cost), 0.5);
+    // m.scale.x = scale;
+    // m.scale.y = scale;
+    // m.scale.z = scale;
+    // m.points = {};
+    // m.color = yellow;
+    // markers.push_back(m);
+    // ++id;
   }
   size_t current_markers_count = markers.size();
 
@@ -251,7 +243,7 @@ int main(int argc, char** argv)
 {
   ros::init(argc, argv, "explore");
   if (ros::console::set_logger_level(ROSCONSOLE_DEFAULT_NAME,
-                                    ros::console::levels::Debug)) {
+                                    ros::console::levels::Info)) {
     ros::console::notifyLoggerLevelsChanged();
   }
   explore::Explore explore;

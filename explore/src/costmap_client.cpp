@@ -76,12 +76,12 @@ Costmap2DClient::Costmap2DClient(ros::NodeHandle& param_nh,
   updateFullMap(costmap_msg);
 
   /* subscribe to map updates */
-  costmap_updates_sub_ =
-      subscription_nh.subscribe<map_msgs::OccupancyGridUpdate>(
-          costmap_updates_topic, 1000,
-          [this](const map_msgs::OccupancyGridUpdate::ConstPtr& msg) {
-            updatePartialMap(msg);
-          });
+  // costmap_updates_sub_ =
+  //     subscription_nh.subscribe<map_msgs::OccupancyGridUpdate>(
+  //         costmap_updates_topic, 1000,
+  //         [this](const map_msgs::OccupancyGridUpdate::ConstPtr& msg) {
+  //           updatePartialMap(msg);
+  //         });
 
   /* resolve tf prefix for robot_base_frame */
   std::string tf_prefix = tf::getPrefixParam(param_nh);
@@ -142,50 +142,50 @@ void Costmap2DClient::updateFullMap(const nav_msgs::OccupancyGrid::ConstPtr& msg
   ROS_DEBUG("map updated, written %lu values", costmap_size);
 }
 
-void Costmap2DClient::updatePartialMap(
-    const map_msgs::OccupancyGridUpdate::ConstPtr& msg)
-{
-  ROS_DEBUG("received partial map update");
-  global_frame_ = msg->header.frame_id;
+// void Costmap2DClient::updatePartialMap(
+//     const map_msgs::OccupancyGridUpdate::ConstPtr& msg)
+// {
+//   ROS_DEBUG("received partial map update");
+//   global_frame_ = msg->header.frame_id;
 
-  if (msg->x < 0 || msg->y < 0) {
-    ROS_ERROR("negative coordinates, invalid update. x: %d, y: %d", msg->x,
-              msg->y);
-    return;
-  }
+//   if (msg->x < 0 || msg->y < 0) {
+//     ROS_ERROR("negative coordinates, invalid update. x: %d, y: %d", msg->x,
+//               msg->y);
+//     return;
+//   }
 
-  size_t x0 = static_cast<size_t>(msg->x);
-  size_t y0 = static_cast<size_t>(msg->y);
-  size_t xn = msg->width + x0;
-  size_t yn = msg->height + y0;
+//   size_t x0 = static_cast<size_t>(msg->x);
+//   size_t y0 = static_cast<size_t>(msg->y);
+//   size_t xn = msg->width + x0;
+//   size_t yn = msg->height + y0;
 
-  // lock as we are accessing raw underlying map
-  auto* mutex = costmap_.getMutex();
-  std::lock_guard<costmap_2d::Costmap2D::mutex_t> lock(*mutex);
+//   // lock as we are accessing raw underlying map
+//   auto* mutex = costmap_.getMutex();
+//   std::lock_guard<costmap_2d::Costmap2D::mutex_t> lock(*mutex);
 
-  size_t costmap_xn = costmap_.getSizeInCellsX();
-  size_t costmap_yn = costmap_.getSizeInCellsY();
+//   size_t costmap_xn = costmap_.getSizeInCellsX();
+//   size_t costmap_yn = costmap_.getSizeInCellsY();
 
-  if (xn > costmap_xn || x0 > costmap_xn || yn > costmap_yn ||
-      y0 > costmap_yn) {
-    ROS_WARN("received update doesn't fully fit into existing map, "
-             "only part will be copied. received: [%lu, %lu], [%lu, %lu] "
-             "map is: [0, %lu], [0, %lu]",
-             x0, xn, y0, yn, costmap_xn, costmap_yn);
-  }
+//   if (xn > costmap_xn || x0 > costmap_xn || yn > costmap_yn ||
+//       y0 > costmap_yn) {
+//     ROS_WARN("received update doesn't fully fit into existing map, "
+//              "only part will be copied. received: [%lu, %lu], [%lu, %lu] "
+//              "map is: [0, %lu], [0, %lu]",
+//              x0, xn, y0, yn, costmap_xn, costmap_yn);
+//   }
 
-  // update map with data
-  unsigned char* costmap_data = costmap_.getCharMap();
-  size_t i = 0;
-  for (size_t y = y0; y < yn && y < costmap_yn; ++y) {
-    for (size_t x = x0; x < xn && x < costmap_xn; ++x) {
-      size_t idx = costmap_.getIndex(x, y);
-      unsigned char cell_cost = static_cast<unsigned char>(msg->data[i]);
-      costmap_data[idx] = cost_translation_table__[cell_cost];
-      ++i;
-    }
-  }
-}
+//   // update map with data
+//   unsigned char* costmap_data = costmap_.getCharMap();
+//   size_t i = 0;
+//   for (size_t y = y0; y < yn && y < costmap_yn; ++y) {
+//     for (size_t x = x0; x < xn && x < costmap_xn; ++x) {
+//       size_t idx = costmap_.getIndex(x, y);
+//       unsigned char cell_cost = static_cast<unsigned char>(msg->data[i]);
+//       costmap_data[idx] = cost_translation_table__[cell_cost];
+//       ++i;
+//     }
+//   }
+// }
 
 geometry_msgs::Pose Costmap2DClient::getRobotPose() const
 {

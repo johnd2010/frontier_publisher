@@ -20,7 +20,6 @@
 
   <depend>roscpp</depend>
   <depend>std_msgs</depend>
-  <depend>move_base_msgs</depend>
   <depend>visualization_msgs</depend>
   <depend>geometry_msgs</depend>
   <depend>map_msgs</depend>

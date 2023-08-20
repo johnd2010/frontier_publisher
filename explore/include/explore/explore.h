@@ -44,7 +44,6 @@
 
 #include <actionlib/client/simple_action_client.h>
 #include <geometry_msgs/PoseStamped.h>
-#include <move_base_msgs/MoveBaseAction.h>
 #include <ros/ros.h>
 #include <visualization_msgs/MarkerArray.h>
 
@@ -64,14 +63,10 @@ public:
   Explore();
   ~Explore();
 
-  void start();
-  void stop();
-
 private:
   /**
    * @brief  Make a global plan
    */
-  void makePlan();
   void get_frontiers();
 
   /**
@@ -80,9 +75,6 @@ private:
   void visualizeFrontiers(
       const std::vector<frontier_exploration::Frontier>& frontiers);
 
-  void reachedGoal(const actionlib::SimpleClientGoalState& status,
-                   const move_base_msgs::MoveBaseResultConstPtr& result,
-                   const geometry_msgs::Point& frontier_goal);
 
   bool goalOnBlacklist(const geometry_msgs::Point& goal);
 
@@ -92,8 +84,6 @@ private:
   tf::TransformListener tf_listener_;
 
   Costmap2DClient costmap_client_;
-  actionlib::SimpleActionClient<move_base_msgs::MoveBaseAction>
-      move_base_client_;
   frontier_exploration::FrontierSearch search_;
   ros::Timer exploring_timer_;
   ros::Timer oneshot_;

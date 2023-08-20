@@ -8,7 +8,6 @@ find_package(catkin REQUIRED COMPONENTS
   costmap_2d
   geometry_msgs
   map_msgs
-  move_base_msgs
   nav_msgs
   roscpp
   std_msgs
@@ -26,7 +25,6 @@ catkin_package(
     costmap_2d
     geometry_msgs
     map_msgs
-    move_base_msgs
     nav_msgs
     roscpp
     std_msgs
