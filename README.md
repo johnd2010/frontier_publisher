@@ -2,7 +2,7 @@
 
 [![Build Status](http://build.ros.org/job/Kdev__m_explore__ubuntu_xenial_amd64/badge/icon)](http://build.ros.org/job/Kdev__m_explore__ubuntu_xenial_amd64)
 
-ROS packages for multi robot exploration.
+ROS packages for acquiring frontiers from an occupancy map. 
 
 Installing
 ----------
@@ -25,7 +25,6 @@ WIKI
 
 Packages are documented at ROS wiki.
 * [explore_lite](http://wiki.ros.org/explore_lite)
-* [multirobot_map_merge](http://wiki.ros.org/multirobot_map_merge)
 
 COPYRIGHT
 ---------
