@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.1)
-project(explore_lite)
+project(simple_frontier)
 
 ## Find catkin macros and libraries
 find_package(catkin REQUIRED COMPONENTS

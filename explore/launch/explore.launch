@@ -1,6 +1,6 @@
 <launch>
 <arg name="ns" default="J0" />
-<node ns="$(arg ns)" pkg="explore_lite" type="explore" respawn="false" name="explore" output="screen">
+<node ns="$(arg ns)" pkg="simple_frontier" type="explore" respawn="false" name="explore" output="screen">
   <param name="robot_base_frame" value="$(arg ns)/base_link"/>
   <param name="costmap_topic" value="/$(arg ns)/locus/octree_projected_map"/>
   <param name="visualize" value="true"/>
