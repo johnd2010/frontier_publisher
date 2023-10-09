@@ -1,8 +1,8 @@
 <launch>
-<arg name="ns" default="J0" />
+<arg name="ns" default="uav1" />
 <node ns="$(arg ns)" pkg="simple_frontier" type="explore" respawn="false" name="explore" output="screen">
-  <param name="robot_base_frame" value="$(arg ns)/base_link"/>
-  <param name="costmap_topic" value="/$(arg ns)/locus/octree_projected_map"/>
+  <param name="robot_base_frame" value="$(arg ns)/fcu"/>
+  <param name="costmap_topic" value="/$(arg ns)/octree_projected_map"/>
   <param name="visualize" value="true"/>
   <param name="planner_frequency" value="10"/>
   <param name="progress_timeout" value="30.0"/>
