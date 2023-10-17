@@ -5,3 +5,5 @@
 explore/me.txt
 explore/.vscode/c_cpp_properties.json
 explore/.vscode/settings.json
+
+*.swp

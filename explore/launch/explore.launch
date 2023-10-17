@@ -1,5 +1,5 @@
 <launch>
-<arg name="ns" default="uav1" />
+<arg name="ns" default="$(optenv UAV_NAME)" />
 <node ns="$(arg ns)" pkg="simple_frontier" type="explore" respawn="false" name="explore" output="screen">
   <param name="robot_base_frame" value="$(arg ns)/fcu"/>
   <param name="costmap_topic" value="/$(arg ns)/octree_projected_map"/>
