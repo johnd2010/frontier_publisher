@@ -32,6 +32,7 @@ std::vector<Frontier> FrontierSearch::searchFrom(geometry_msgs::Point position)
   unsigned int mx, my;
   if (!costmap_->worldToMap(position.x, position.y, mx, my)) {
     ROS_ERROR("Robot out of costmap bounds, cannot search for frontiers");
+    costmap_->worldToMap(1,1, mx, my);
     // return frontier_list;
   }
 
