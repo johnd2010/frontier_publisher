@@ -1,6 +1,6 @@
 <launch>
 <arg name="ns" default="$(optenv UAV_NAME)" />
-<node ns="$(arg ns)" pkg="simple_frontier" type="explore" respawn="true" name="explore_notbag" output="screen">
+<node ns="$(arg ns)" pkg="simple_frontier_detection" type="explore" respawn="true" name="explore_notbag" output="screen">
   <param name="robot_base_frame" value="$(arg ns)/fcu"/>
   <param name="costmap_topic" value="/$(arg ns)/octree_projected_map"/>
   <param name="visualize" value="true"/>

@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.1)
-project(simple_frontier)
+project(simple_frontier_detection)
 
 ## Find catkin macros and libraries
 find_package(catkin REQUIRED COMPONENTS

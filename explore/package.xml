@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <package format="2">
-  <name>simple_frontier</name>
+  <name>simple_frontier_detection</name>
   <version>2.1.4</version>
 
   <description>Lightweight frontier-based exploration.</description>
