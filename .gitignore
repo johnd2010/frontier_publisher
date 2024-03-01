@@ -7,3 +7,5 @@ explore/.vscode/c_cpp_properties.json
 explore/.vscode/settings.json
 
 *.swp
+.vscode/c_cpp_properties.json
+.vscode/settings.json
